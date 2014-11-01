@@ -11,8 +11,16 @@
   var circleOffset = 20;
   var lineHeight = 16;
   
+  // create a dummy element used to hold text which we use to calculate the pixel width of a text block;
+  var lDiv = document.createElement('div');
+  
    window.onload = function () {
-      
+     document.body.appendChild(lDiv);
+     lDiv.style.fontSize = "" + 12 + "px";
+     lDiv.style.position = "absolute";
+     lDiv.style.left = "-1000px";
+     lDiv.style.top = "-1000px";
+            
       s = Snap("#svg");
         
       var circle1 = createCircle(300, 300, 270);
@@ -20,23 +28,24 @@
       var circle3 = createCircle(300, 300, 100);
       var circle4 = createCircle(300, 300, 20);
        
-      addText(circle1, 'The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog', circleOffset, 1);
-      addText(circle2, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at torto Donec sit amet ultricies neque. Donec sit amet ultricies neque. Nullam", circleOffset, 1);
-      addText(circle3, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at torto Donec sit amet ultricies neque. Donec sit amet ultricies neque. Nullam", circleOffset, 1);
+      //addText(circle1, 'The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog', circleOffset, 1);
+      addText(circle1, 'Your powers are weak old man. Your powers are weak old man. Your powersy ars weak old man. Your powers are weak old man, Your powers are weak old man', circleOffset, 1);
+      addText(circle2, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur", circleOffset, 1);
+      addText(circle3, "Donec sit amet ultricies neque.", circleOffset, 1);
            
       addText(circle1, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitu Donec sit amet ultricies neque.", circleOffset, 2);
       addText(circle2, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitu", circleOffset, 2);
-      addText(circle3, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitu", circleOffset, 2);           
+      addText(circle3, "Donec sit amet ultricies neque.", circleOffset, 2);           
            
-      addText(circle1, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at torto Donec sit amet ultricies neque. torto Donec sit amet ultricies neque. Donec sit amet ultricies neque. Nullam", circleOffset, 3);
-      addText(circle2, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at torto Donec sit amet ultricies neque. Donec sit amet ultricies neque. Nullam", circleOffset, 3);
-      addText(circle3, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at torto Donec sit amet ultricies neque. Donec sit amet ultricies neque. Nullam", circleOffset, 3);
+      addText(circle1, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at", circleOffset, 3);
+      addText(circle2, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitur elementum at", circleOffset, 3);
+      addText(circle3, "Donec sit amet ultricies neque.", circleOffset, 3);
       
-      addText(circle1, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitu", circleOffset, 4);
+      addText(circle1, "Donecy sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitu", circleOffset, 4);
       addText(circle2, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Nullam nec erat in dui mattis vehicula Curabitu", circleOffset, 4);
-      addText(circle3, "Donec sit amet ultricies neque. Nullam nec erat in dui mattis vehicula. Curabitu", circleOffset, 4);
+      addText(circle3, "Donec sit amet ultricies neque.", circleOffset, 4);
   }
-    
+            
     function createCircle(posX, posY, radius){
       var circle = s.circle(posX, posY, radius);
       styleCircle(circle);
@@ -47,16 +56,21 @@
    function addText(circle, text, offSet, pos){
     var textRadius = circle.getBBox().r1 - offSet;
     
-    var stringWidth = getStringLength(text).width;
+    var stringWidth = getStringLength(text);
+    
     var subString = "";
     
-    var sectionWidth = (textRadius * 2 * Math.PI) / 4;
+    var sectionWidth = ((textRadius) * 2 * Math.PI) / 4;
+    
+    sectionWidth = sectionWidth - 20;
     
     if(stringWidth > sectionWidth){
-      subString = text.substring(80); 
-      text = text.substring(0, 80); 
+      var textParts = seperateFirstLine(text, sectionWidth);
+      
+      text = textParts[0];
+      subString = textParts[1];
     }
-   
+    
     var angles = getStartAndEndAngles(pos);
     
     var startPoints = GetCircumferencePoints(textRadius, circle.getBBox().cx, circle.getBBox().cy, angles[0] + 5);
@@ -82,18 +96,69 @@
       "fill": (pos == 1 || pos == 3) ? "red"  : "#000"
     });
     
-    if(subString != ""){
-      addText(circle, subString, offSet + lineHeight, pos);
+    if(subString != "" && text != ""){
+       addText(circle, subString, offSet + lineHeight, pos);
     }
   }
   
-  function getStringLength(string){
-    var c=document.createElement('canvas');
-    var ctx=c.getContext('2d');
-    //ctx.font = fontsize + 'px' + fontname;
-    return ctx.measureText(string);
+  // Separate the first line out of a bock of text
+  function seperateFirstLine(text, sectionWidth){
+    var firstLineText = "";
+    var remainingText = "";
+    
+    var strArray = text.split(" "); 
+    
+    var isFirstChar = true;
+    var newLine = false;
+    
+    for(var i = 0; i < strArray.length; i++){
+      var wordSpacer = " ";
+      
+      if(isFirstChar){
+        wordSpacer = "";
+        isFirstChar = false;
+      }
+      
+      if(!newLine && measureText(firstLineText + wordSpacer + strArray[i], 12, null).width <= Math.floor(sectionWidth)){
+        firstLineText = firstLineText + (wordSpacer + strArray[i]);
+      } else {
+        remainingText = remainingText + (wordSpacer + strArray[i]);
+        
+        if(!newLine){
+         newLine = true;
+        }
+      }      
+    }
+    
+    return [firstLineText, remainingText];
   }
+      
+  function getStringLength(string){
+    var returnValue = 0;
+    //return measureText(string, 12, null).width;
   
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    //ctx.font = fontsize + 'px' + fontname;
+    returnValue = ctx.measureText(string).width;
+    
+    c.remove();
+    
+    return returnValue;
+  }
+   
+   
+   function measureText(pText, pFontSize, pStyle) {
+     lDiv.innerHTML = pText;
+
+    var lResult = {
+        width: lDiv.clientWidth,
+        height: lDiv.clientHeight
+    };
+
+    return lResult;
+  }
+   
   function getStartAndEndAngles(pos){
     var angles; 
     
