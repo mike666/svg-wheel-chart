@@ -12,15 +12,9 @@
   var lineHeight = 16;
   
   // create a dummy element used to hold text which we use to calculate the pixel width of a text block;
-  var lDiv = document.createElement('div');
+  var lDiv; 
   
    window.onload = function () {
-     document.body.appendChild(lDiv);
-     lDiv.style.fontSize = "" + 12 + "px";
-     lDiv.style.position = "absolute";
-     lDiv.style.left = "-1000px";
-     lDiv.style.top = "-1000px";
-            
       s = Snap("#svg");
         
       var circle1 = createCircle(300, 300, 270);
@@ -56,13 +50,14 @@
    function addText(circle, text, offSet, pos){
     var textRadius = circle.getBBox().r1 - offSet;
     
-    var stringWidth = getStringLength(text);
+    var stringWidth = getStringLengthSvg(text, 12);
     
     var subString = "";
     
     var sectionWidth = ((textRadius) * 2 * Math.PI) / 4;
+    var sectionPadding = 20;
     
-    sectionWidth = sectionWidth - 20;
+    sectionWidth = sectionWidth - sectionPadding;
     
     if(stringWidth > sectionWidth){
       var textParts = seperateFirstLine(text, sectionWidth);
@@ -119,7 +114,7 @@
         isFirstChar = false;
       }
       
-      if(!newLine && measureText(firstLineText + wordSpacer + strArray[i], 12, null).width <= Math.floor(sectionWidth)){
+      if(!newLine && getStringLength(firstLineText + wordSpacer + strArray[i], 12, null).width <= Math.floor(sectionWidth)){
         firstLineText = firstLineText + (wordSpacer + strArray[i]);
       } else {
         remainingText = remainingText + (wordSpacer + strArray[i]);
@@ -133,13 +128,13 @@
     return [firstLineText, remainingText];
   }
       
-  function getStringLength(string){
+  function getStringLengthSvg(string, fontsize){
     var returnValue = 0;
-    //return measureText(string, 12, null).width;
-  
+    
+    
     var c = document.createElement('canvas');
     var ctx = c.getContext('2d');
-    //ctx.font = fontsize + 'px' + fontname;
+    ctx.font = fontsize + 'px';
     returnValue = ctx.measureText(string).width;
     
     c.remove();
@@ -147,9 +142,17 @@
     return returnValue;
   }
    
-   
-   function measureText(pText, pFontSize, pStyle) {
-     lDiv.innerHTML = pText;
+   function getStringLength(pText, pFontSize, pStyle) {
+    if(!lDiv){
+     lDiv = document.createElement('div');
+     document.body.appendChild(lDiv);
+     lDiv.style.fontSize = "" + pFontSize + "px";
+     lDiv.style.position = "absolute";
+     lDiv.style.left = "-1000px";
+     lDiv.style.top = "-1000px";
+    }
+    
+    lDiv.innerHTML = pText;
 
     var lResult = {
         width: lDiv.clientWidth,
